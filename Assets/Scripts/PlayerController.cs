@@ -1,73 +1,49 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
 public class PlayerController : MonoBehaviour {
 
-	Rigidbody2D myRB;
-	SpriteRenderer myRenderer;
-	Animator myAnim;
+    private Rigidbody2D playerRB;
+    private SpriteRenderer playerRenderer;
+    private Animator animator;
 
-	bool canMove = true;  
+    private bool facingRight = false;
 
-	bool facingRight = true;  //is our sprite facing right to start?
-
-	//move
-	public float maxSpeed;
-
-	//jump
-	bool grounded = false;
-	float groundCheckRadius = 0.2f;
-	public LayerMask groundLayer;
-	public Transform groundCheck;
-	public float jumpPower;
-
+    //move
+    public float maxSpeed;
+    
 
 	// Use this for initialization
 	void Start () {
-		myRB = GetComponent<Rigidbody2D> ();
-		myRenderer = GetComponent<SpriteRenderer> ();
-		myAnim = GetComponent<Animator> ();
-	}
+        this.playerRB = GetComponent<Rigidbody2D>();
+        this.playerRenderer = GetComponent<SpriteRenderer>();
+        this.animator = GetComponent<Animator>();
+    }
 	
 	// Update is called once per frame
 	void Update () {
 
-		if (canMove && grounded && Input.GetAxis ("Jump") > 0) {
-			myAnim.SetBool ("isGrounded", false);
-			myRB.velocity = new Vector2 (myRB.velocity.x, 0f);  //make sure out force is the same each jump
-			myRB.AddForce (new Vector2 (0, jumpPower), ForceMode2D.Impulse);  //using a force to make our character jump
-			grounded = false;
-		}
+        float move = Input.GetAxis("Horizontal");
 
-		grounded = Physics2D.OverlapCircle (groundCheck.position, groundCheckRadius, groundLayer); //draw a circle to check for ground
-		myAnim.SetBool ("isGrounded", grounded);
+        if (move > 0 && !facingRight)// pressing right or D 
+        {
+            Flip();
+        }
+        else if (move < 0 && facingRight)// pressing left or A
+        {
+            Flip();
+        }
 
-		float move = Input.GetAxis ("Horizontal");
+        this.playerRB.velocity = new Vector2(move * this.maxSpeed, playerRB.velocity.y);
+        this.animator.SetFloat("MoveSpeed", Math.Abs(move));
 
+    }
 
-		if (canMove) {
-			if (move > 0 && !facingRight)
-				Flip ();
-			else if (move < 0 && facingRight)
-				Flip ();
-
-			myRB.velocity = new Vector2 (move * maxSpeed, myRB.velocity.y);
-			myAnim.SetFloat ("MoveSpeed", Mathf.Abs (move));
-		} else {  //if we can't move, then don't move
-			myRB.velocity = new Vector2 (0, myRB.velocity.y);
-			myAnim.SetFloat ("MoveSpeed", 0);
-		}
-	}
-
-	//this function ensures we are facing in the right direction
-	void Flip(){
-		facingRight = !facingRight;
-		myRenderer.flipX = !myRenderer.flipX;
-	}
-
-	//this function is used in an animation event
-	public void toggleCanMove(){
-		canMove = !canMove; 
-	}
+    private void Flip()
+    {
+        this.facingRight = !this.facingRight;
+        this.playerRenderer.flipX = !this.playerRenderer.flipX;
+    }
 }
